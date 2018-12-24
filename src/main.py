@@ -130,8 +130,30 @@ class Dredging(object):
 
         # self.dredging_df_out[['BucketOWS/VDT','BucketZ','Bucket_w_s']].to_csv('/Users/jbd/PycharmProjects/Dredging/out_new.csv')
 
+    def diff_bar(self):
+        self.dredging_df_out['diff BucketZ'] = self.dredging_df_out['BucketZ'].diff(periods=25)
+
+        # Dredging_.dredging_df['vector of z'] = Dredging_.dredging_df['diff BucketZ']
+
+        self.dredging_df_out.loc[:, "vector of z"] = self.dredging_df_out['diff BucketZ']
+        self.dredging_df_out.loc[self.dredging_df_out.loc[:, "vector of z"] > 0.1, 'vector of z'] = 1
+        self.dredging_df_out.loc[self.dredging_df_out.loc[:, "vector of z"] < -0.1, 'vector of z'] = -1
+        self.dredging_df_out.loc[self.dredging_df_out.loc[:, "vector of z"] == 0, 'vector of z'] = np.NAN
+
+        # min_peakind_index,max_peakind_index = closet_position(Dredging_.dredging_df['vector of z'])
+
+        self.dredging_df_out.loc[:, "vector of z piec"] = self.dredging_df_out['vector of z'].diff()
+        self.dredging_df_out.loc[(self.dredging_df_out.loc[:, "vector of z piec"] < -1) & (
+                self.dredging_df_out.loc[:, "BucketZ"] > 45), 'vector of z piec'] = 1
+        # Dredging_.dredging_df.loc[Dredging_.dredging_df.loc[:, "vector of z"] < -0.1,'vector of z'] = -1
+        self.dredging_df_out.loc[self.dredging_df_out.loc[:, "vector of z piec"] >= -1, 'vector of z piec'] = np.NAN
+
+
 
     def creat_report(self):
+
+
+
         #output
         # 1 Average Cycle time /sec
         # 2 Number of buckets (number of bucket grabs taken)
@@ -146,7 +168,7 @@ class Dredging(object):
 
 
 
-        self.closet_position()
+        # self.closet_position()
 
     def statistics_series(self,data,start=0,fin=None,step=1):
         serries = pd.Series(data[start:fin])
@@ -275,7 +297,9 @@ class Dredging(object):
         # print('BucketZ',list(self.dredging_df_out[:5000]['BucketZ']))
         # print('closed_bucket',list(self.dredging_df_out[:5000]['closed_bucket']))
 
-
+    def Bucket_open_water_surface(self):
+        pass
+        q
 
 class MplCanvas(FigureCanvas):
     def __init__(self):
@@ -392,6 +416,8 @@ class Ui_MainWindow(ApplicationContext):
 
         self.Graphic.canvas.draw()
 
+
+
     def plot2_data(self,start_position,fin_position):
 
         self.old_start_position = start_position
@@ -408,7 +434,6 @@ class Ui_MainWindow(ApplicationContext):
 
         self.Graphic_2.canvas.ax.plot(self.data_plot2[self.select_columns])
 
-        # self.Graphic.canvas.ax.plot(data[['BucketY','BargeY']])#data[['BucketZ','BoomAng']])
         self.Graphic_2.canvas.ax.set_title("Graphic2")
 
         self.Graphic_2.canvas.draw()
@@ -560,21 +585,18 @@ class Ui_MainWindow(ApplicationContext):
 
 
     def get_data_csv(self):
-        # try:
+        try:
 
-        self.filename_now, _filter = QtWidgets.QFileDialog.getOpenFileName(None, "Open " + ' ' + " Data File", '.', "(*.csv)")
-
+            self.filename_now, _filter = QtWidgets.QFileDialog.getOpenFileName(None, "Open " + ' ' + " Data File", '.', "(*.csv)")
+        except:
+            self.error_msg.setInformativeText('Firs load file')
+            self.error_msg.show()
+            return
         io_lock = threading.RLock()
         executor = ThreadPoolExecutor(5)
         with io_lock:
             executor.submit(self.load_data_)
 
-        # self.load_data_()
-        # wait([self.pool.submit(self.load_data_)])
-        # io_lock = threading.RLock()
-        # with io_lock:
-        #
-        #     self.pool.submit(self.load_data_)
 
 
 
